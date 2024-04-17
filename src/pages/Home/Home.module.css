@@ -6,3 +6,8 @@
   max-width: 340px;
   gap: var(--spacing-md);
 }
+
+
+.container img {
+  align-content: center;
+}
