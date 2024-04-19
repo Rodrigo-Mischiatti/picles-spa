@@ -1,26 +1,60 @@
-import { Link } from "react-router-dom";
 import { Header } from "../../components/common/Header";
 import { Grid } from "../../components/layout/Grid";
 import styles from "./Pets.module.css"
 import { Card } from "../../components/common/Card";
 import { Skeleton } from "../../components/common/Skeleton";
-import { getPets } from "../../services/pets/getPets";
+import { Pagination } from "../../components/common/Pagination";
+import { useSearchParams } from "react-router-dom";
+import { usePetList } from "../../hooks/usePetList";
 
 
 export function Pets() {
+
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const urlParams = {
+        page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
+    }
+
+    const { data, isLoading } = usePetList(urlParams)
+
+    function changePage(page: number) {
+        setSearchParams((params) => {
+            params.set('page', String(page))
+            return params
+        })
+    }
+
     return (
         <Grid>
             <div className={styles.container}>
                 <Header />
+                {
+                    isLoading && (
+                        <Skeleton
+                            containerClassName={styles.skeleton}
+                            count={10}
+                            baseColor="#eaf2ffe1" /*'#ebebeb'*/
+                            highlightColor="#bcd3f7e1"/*'#f5f5f5'*/
+                        />)
+                }
                 <main className={styles.list}>
-                    <Skeleton count={5} containerClassName={styles.skeleton} />
-
-
-                    <Card href="/pets/1" text="nina" thumb="" />
-                    <Card href="/pets/2" text="bob" thumb="" />
-                    <Card href="/pets/3" text="chico" thumb="" />
+                    {data?.items.map((pet) => (
+                        <Card
+                            key={pet.id}
+                            href={`/pets/${pet.id}`}
+                            text={pet.name}
+                            thumb={pet.photo}
+                        />
+                    ))}
                 </main>
-                <Link to="/pets/20">Ir para Listagem</Link>
+                {data?.currentPage && (
+                    <Pagination
+                        currentPage={data.currentPage}
+                        totalPages={data.totalPages}
+                        onPageChange={(number) => changePage(number)}
+                    />)
+                }
             </div>
         </Grid>
     )
