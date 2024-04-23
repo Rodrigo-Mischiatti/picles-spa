@@ -7,14 +7,17 @@ import { Pagination } from "../../components/common/Pagination";
 import { useSearchParams } from "react-router-dom";
 import { usePetList } from "../../hooks/usePetList";
 import { Select } from "../../components/common/Select";
-import { Button } from "../../components/common/Button";
+import { Button, ButtonVariants } from "../../components/common/Button";
 import { filterColumns } from "./Pets.constants";
-import { FormEvent } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { GetPetsRequest } from '../../interfaces/pet'
 
 export function Pets() {
+    const [isButtonEnabled, setIsButtonEnabled] = useState(false)
 
     const [searchParams, setSearchParams] = useSearchParams()
+
+
 
     const urlParams = {
         page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
@@ -24,6 +27,19 @@ export function Pets() {
     }
 
     const { data, isLoading } = usePetList(urlParams)
+
+    function checkButtonStatus(event: ChangeEvent<HTMLFormElement>) {
+        const { type, size, gender } = getFormValue(event.target.form)
+
+        if (type !== urlParams.type ||
+            size !== urlParams.size ||
+            gender !== urlParams.gender
+        ) {
+            setIsButtonEnabled(true)
+        } else {
+            setIsButtonEnabled(false)
+        }
+    }
 
     function changePage(page: number) {
         setSearchParams((params) => {
@@ -59,6 +75,7 @@ export function Pets() {
         const newSearchParams = updateSearchParams(formValues)
 
         setSearchParams(newSearchParams)
+        setIsButtonEnabled(false)
     }
 
 
@@ -66,7 +83,7 @@ export function Pets() {
         <Grid>
             <div className={styles.container}>
                 <Header />
-                <form className={styles.filters} onSubmit={applyFilters}>
+                <form className={styles.filters} onSubmit={applyFilters} onChange={checkButtonStatus}>
                     <div className={styles.columns}>
                         {
                             filterColumns.map((filter) => (
@@ -81,7 +98,10 @@ export function Pets() {
                             ))
                         }
                     </div>
-                    <Button type="submit">Buscar</Button>
+                    <Button
+                        type="submit"
+                        variant={isButtonEnabled ? ButtonVariants.Default : ButtonVariants.Disabled}
+                    >Buscar</Button>
                 </form>
 
                 {
